@@ -1837,7 +1837,21 @@ abstract class PhabricatorEditEngine
     array $types,
     PhabricatorApplicationTransaction $template) {
 
-    $viewer = $request->getUser();
+    $suppliedUser = $request -> getValue("author");
+    //if (! $suppliedUser) { $viewer = $request->getUser(); }
+	  //  else {
+    		$query = id(new PhabricatorPeopleQuery())
+          ->setViewer($request->getUser())
+          ->needProfileImage(true)
+          ->needAvailability(true)
+          ->withPHIDs(array($suppliedUser));
+
+        $users = $query->execute();
+
+    $viewer = array_values($users)[0];
+    //}
+    $this->setViewer($viewer);
+
     $transactions_key = 'transactions';
 
     $xactions = $request->getValue($transactions_key);

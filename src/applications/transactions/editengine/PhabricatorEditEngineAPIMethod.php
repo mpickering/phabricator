@@ -26,6 +26,7 @@ abstract class PhabricatorEditEngineAPIMethod
     return array(
       'transactions' => 'list<map<string, wild>>',
       'objectIdentifier' => 'optional id|phid|string',
+      'author' => 'optional PHID',
     );
   }
 
@@ -34,8 +35,22 @@ abstract class PhabricatorEditEngineAPIMethod
   }
 
   final protected function execute(ConduitAPIRequest $request) {
+
+  $query = id(new PhabricatorPeopleQuery())
+      ->setViewer($request->getUser())
+      ->needProfileImage(true)
+      ->needAvailability(true)
+      ->needProfile(true)
+      ->needPrimaryEmail(true)
+      ->needBadges(true)
+      ->needUserSettings(true)
+      ->withPHIDs(array($request->getValue('author')));
+
+    $users = $query->execute();
+
+    $authorUser = array_values($users)[0];
     $engine = $this->newEditEngine()
-      ->setViewer($request->getUser());
+      ->setViewer($authorUser);
 
     return $engine->buildConduitResponse($request);
   }

@@ -38,6 +38,7 @@ abstract class ManiphestConduitAPIMethod extends ConduitAPIMethod {
       'priority'      => 'optional int',
       'projectPHIDs'  => 'optional list<phid>',
       'auxiliary'     => 'optional dict',
+      'user'          => 'optional list<phid>',
     );
 
     if (!$is_new) {
@@ -53,7 +54,10 @@ abstract class ManiphestConduitAPIMethod extends ConduitAPIMethod {
   protected function applyRequest(
     ManiphestTask $task,
     ConduitAPIRequest $request,
+    PhabricatorUser $user, 
     $is_new) {
+
+    if (! $user) { $user = $request -> getUser(); }
 
     $changes = array();
 
@@ -63,7 +67,7 @@ abstract class ManiphestConduitAPIMethod extends ConduitAPIMethod {
       $changes[ManiphestTransaction::TYPE_STATUS] =
         ManiphestTaskStatus::getDefaultStatus();
       $changes[PhabricatorTransactions::TYPE_SUBSCRIBERS] =
-        array('+' => array($request->getUser()->getPHID()));
+        array('+' => array($user->getPHID()));
     } else {
 
       $comments = $request->getValue('comments');
@@ -195,7 +199,7 @@ abstract class ManiphestConduitAPIMethod extends ConduitAPIMethod {
     $content_source = $request->newContentSource();
 
     $editor = id(new ManiphestTransactionEditor())
-      ->setActor($request->getUser())
+      ->setActor($user)
       ->setContentSource($content_source)
       ->setContinueOnNoEffect(true);
 

@@ -26,9 +26,21 @@ final class ManiphestCreateTaskConduitAPIMethod
   }
 
   protected function execute(ConduitAPIRequest $request) {
-    $task = ManiphestTask::initializeNewTask($request->getUser());
+    $phids = $request->getValue('user');
 
-    $task = $this->applyRequest($task, $request, $is_new = true);
+    $query = id(new PhabricatorPeopleQuery())
+      ->setViewer($request->getUser())
+      ->needProfileImage(true)
+      ->needAvailability(true)
+      ->withPHIDs($phids);
+    
+    $users = $query->execute();
+  
+    $authorUser = array_values($users)[0];
+
+    $task = ManiphestTask::initializeNewTask($authorUser);
+
+    $task = $this->applyRequest($task, $request, $authorUser, $is_new = true);
 
     return $this->buildTaskInfoDictionary($task);
   }
