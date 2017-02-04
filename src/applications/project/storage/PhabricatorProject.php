@@ -540,8 +540,17 @@ final class PhabricatorProject extends PhabricatorProjectDAO
   public function getDisplayName() {
     $name = $this->getName();
 
+
     // If this is a milestone, show it as "Parent > Sprint 99".
-    if ($this->isMilestone()) {
+    //if ($this->isMilestone()) {
+    //  $name = pht(
+    //    '%s (%s)',
+    //    $this->getParentProject()->getName(),
+    //    $name);
+   // }
+
+    $parent = $this->getParentProject();
+    if ($parent) {
       $name = pht(
         '%s (%s)',
         $this->getParentProject()->getName(),
